@@ -23,11 +23,10 @@ package forwarding
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	"github.com/noble-assets/forwarding/v2/keeper"
 	"github.com/noble-assets/forwarding/v2/types"
 )
@@ -45,12 +44,12 @@ func NewMiddleware(app porttypes.IBCModule, authKeeper types.AccountKeeper, keep
 	return Middleware{app: app, authKeeper: authKeeper, keeper: keeper}
 }
 
-func (m Middleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, error) {
-	return m.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, version)
+func (m Middleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, counterparty channeltypes.Counterparty, version string) (string, error) {
+	return m.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 }
 
-func (m Middleware) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string) (version string, err error) {
-	return m.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
+func (m Middleware) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, counterparty channeltypes.Counterparty, counterpartyVersion string) (version string, err error) {
+	return m.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
 func (m Middleware) OnChanOpenAck(ctx sdk.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
@@ -70,7 +69,7 @@ func (m Middleware) OnChanCloseConfirm(ctx sdk.Context, portID string, channelID
 }
 
 // OnRecvPacket implements the porttypes.IBCModule interface.
-func (m Middleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+func (m Middleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	// This middleware is intended to be integrated with "transfer" ICS-20
 	// channels. With this middleware, two packets exist can be sent on these
 	// channels, namely "FungibleTokenPacketData" and "RegisterAccountData".
@@ -111,12 +110,12 @@ func (m Middleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 
 		receiver, err := m.authKeeper.AddressCodec().StringToBytes(transferData.Receiver)
 		if err != nil {
-			return m.app.OnRecvPacket(ctx, packet, relayer)
+			return m.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 		}
 
 		rawAccount := m.authKeeper.GetAccount(ctx, receiver)
 		if rawAccount == nil {
-			return m.app.OnRecvPacket(ctx, packet, relayer)
+			return m.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 		}
 
 		account, ok := rawAccount.(*types.ForwardingAccount)
@@ -124,12 +123,12 @@ func (m Middleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 			m.keeper.SetPendingForward(ctx, account)
 		}
 
-		return m.app.OnRecvPacket(ctx, packet, relayer)
+		return m.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	var data types.RegisterAccountData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return m.app.OnRecvPacket(ctx, packet, relayer)
+		return m.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	channel := packet.DestinationChannel
@@ -151,10 +150,10 @@ func (m Middleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	}
 }
 
-func (m Middleware) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
-	return m.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+func (m Middleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+	return m.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 }
 
-func (m Middleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-	return m.app.OnTimeoutPacket(ctx, packet, relayer)
+func (m Middleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+	return m.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 }

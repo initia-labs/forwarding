@@ -39,10 +39,11 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
 	// IBC Modules
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	transferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+
 	// Custom Modules
 	forwardingkeeper "github.com/noble-assets/forwarding/v2/keeper"
 )
@@ -75,9 +76,8 @@ type SimApp struct {
 	StakingKeeper   *stakingkeeper.Keeper
 	UpgradeKeeper   *upgradekeeper.Keeper
 	// IBC Modules
-	CapabilityKeeper *capabilitykeeper.Keeper
-	IBCKeeper        *ibckeeper.Keeper
-	TransferKeeper   transferkeeper.Keeper
+	IBCKeeper      *ibckeeper.Keeper
+	TransferKeeper transferkeeper.Keeper
 	// Custom Modules
 	ForwardingKeeper *forwardingkeeper.Keeper
 }

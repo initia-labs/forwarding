@@ -23,6 +23,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/event"
@@ -32,9 +33,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/noble-assets/forwarding/v2/types"
 )
 
@@ -62,6 +63,12 @@ type Keeper struct {
 	channelKeeper  types.ChannelKeeper
 	transferKeeper types.TransferKeeper
 }
+
+// defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
+// relative to the current block timestamp of the counterparty chain provided by the client
+// state. The timeout is disabled when set to 0. The default is currently set to a 10 minute
+// timeout.
+var defaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 
 func NewKeeper(
 	cdc codec.Codec,
@@ -148,7 +155,7 @@ func (k *Keeper) ExecuteForwards(ctx context.Context) {
 				continue
 			}
 
-			timeout := uint64(k.headerService.GetHeaderInfo(ctx).Time.UnixNano()) + transfertypes.DefaultRelativePacketTimeoutTimestamp
+			timeout := uint64(k.headerService.GetHeaderInfo(ctx).Time.UnixNano()) + defaultRelativePacketTimeoutTimestamp
 			msg := &transfertypes.MsgTransfer{
 				SourcePort:       transfertypes.PortID,
 				SourceChannel:    forward.Channel,

@@ -30,7 +30,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/jsonpb"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	"github.com/icza/dyno"
 	forwardingtypes "github.com/noble-assets/forwarding/v2/types"
 	"github.com/strangelove-ventures/interchaintest/v8"
@@ -73,10 +73,7 @@ func TestRegisterOnNoble(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, balance.IsZero())
 
-	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uusdc",
-	}.IBCDenom())
+	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.NewDenom("uusdc", transfertypes.NewHop("transfer", "channel-0")).IBCDenom())
 	require.NoError(t, err)
 	require.Equal(t, math.NewInt(1_000_000), receiverBalance)
 
@@ -149,10 +146,7 @@ func TestRegisterViaTransfer(t *testing.T) {
 	stats := ForwardingStats(t, ctx, validator)
 	require.Equal(t, uint64(1), stats.NumOfAccounts)
 	require.Equal(t, uint64(1), stats.NumOfForwards)
-	require.Equal(t, sdk.NewCoins(sdk.NewCoin(transfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uatom",
-	}.IBCDenom(), math.NewInt(100_000))), stats.TotalForwarded)
+	require.Equal(t, sdk.NewCoins(sdk.NewCoin(transfertypes.NewDenom("uatom", transfertypes.NewHop("transfer", "channel-0")).IBCDenom(), math.NewInt(100_000))), stats.TotalForwarded)
 }
 
 func TestRegisterViaPacket(t *testing.T) {
@@ -193,10 +187,7 @@ func TestFrontRunAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, balance.IsZero())
 
-	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uusdc",
-	}.IBCDenom())
+	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.NewDenom("uusdc", transfertypes.NewHop("transfer", "channel-0")).IBCDenom())
 	require.NoError(t, err)
 	require.Equal(t, math.NewInt(1_000_000), receiverBalance)
 
@@ -242,10 +233,7 @@ func TestClearAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, math.NewInt(1_000_000), balance)
 
-	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uusdc",
-	}.IBCDenom())
+	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.NewDenom("uusdc", transfertypes.NewHop("transfer", "channel-0")).IBCDenom())
 	require.NoError(t, err)
 	require.True(t, receiverBalance.IsZero())
 
@@ -261,10 +249,7 @@ func TestClearAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, balance.IsZero())
 
-	receiverBalance, err = gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uusdc",
-	}.IBCDenom())
+	receiverBalance, err = gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.NewDenom("uusdc", transfertypes.NewHop("transfer", "channel-0")).IBCDenom())
 	require.NoError(t, err)
 	require.Equal(t, math.NewInt(1_000_000), receiverBalance)
 
@@ -314,10 +299,7 @@ func TestFallbackAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, math.NewInt(1_000_000), balance)
 
-	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uusdc",
-	}.IBCDenom())
+	receiverBalance, err := gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.NewDenom("uusdc", transfertypes.NewHop("transfer", "channel-0")).IBCDenom())
 	require.NoError(t, err)
 	require.True(t, receiverBalance.IsZero())
 
@@ -337,10 +319,7 @@ func TestFallbackAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, balance.IsZero())
 
-	receiverBalance, err = gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uusdc",
-	}.IBCDenom())
+	receiverBalance, err = gaia.GetBalance(ctx, receiver.FormattedAddress(), transfertypes.NewDenom("uusdc", transfertypes.NewHop("transfer", "channel-0")).IBCDenom())
 	require.NoError(t, err)
 	require.True(t, receiverBalance.IsZero())
 
@@ -379,7 +358,7 @@ func TestAllowedDenoms(t *testing.T) {
 
 	balance, err := noble.BankQueryAllBalances(ctx, address)
 	require.NoError(t, err)
-	uatom := transfertypes.DenomTrace{Path: "transfer/channel-0", BaseDenom: "uatom"}.IBCDenom()
+	uatom := transfertypes.NewDenom("uatom", transfertypes.NewHop("transfer", "channel-0")).IBCDenom()
 	require.Equal(t, sdk.NewCoins(sdk.NewCoin(uatom, math.NewInt(100_000))), balance)
 
 	require.NoError(t, validator.BankSend(ctx, sender.KeyName(), ibc.WalletAmount{
