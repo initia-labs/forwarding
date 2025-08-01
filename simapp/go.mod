@@ -16,9 +16,7 @@ require (
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.53.0
-	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v10 v10.3.0
-	github.com/cosmos/ibc-go/v8 v8.5.1
 	github.com/noble-assets/forwarding/v2 v2.0.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
