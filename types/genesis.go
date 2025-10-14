@@ -22,17 +22,14 @@ package types
 
 import (
 	"errors"
-	"slices"
-	"strings"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 func DefaultGenesisState() *GenesisState {
-	return &GenesisState{
-		AllowedDenoms: []string{"*"},
-	}
+	return &GenesisState{}
 }
 
 func (gen *GenesisState) Validate() error {
@@ -66,16 +63,10 @@ func (gen *GenesisState) Validate() error {
 }
 
 // ValidateAllowedDenoms checks if a specified denom list is valid.
-// It ensures that if a wildcard "*" is present, it must be the only item.
-// It also ensures non-empty entries.
 func ValidateAllowedDenoms(denoms []string) error {
-	if slices.Contains(denoms, "*") && len(denoms) > 1 {
-		return errors.New("wildcard can only be present by itself")
-	}
-
 	for _, denom := range denoms {
-		if strings.TrimSpace(denom) == "" {
-			return errors.New("cannot allow empty denom")
+		if err := sdk.ValidateDenom(denom); err != nil {
+			return fmt.Errorf("denom %s is invalid: %w", denom, err)
 		}
 	}
 

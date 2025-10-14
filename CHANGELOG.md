@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v2.0.3
+
+*Oct 14, 2025*
+
+This is a consensus breaking patch release to the v2 line.
+
+### BREAKING CHANGES
+
+- Remove support for the `"*"` wildcard in the allowed denoms configuration.
+
+### IMPROVEMENTS
+
+- Deprecate usage of `x/bank` `GetAllBalances` method in favor of `GetBalance` restricted to the allowed denoms.
+
 ## v2.0.2
 
 *Apr 9, 2025*

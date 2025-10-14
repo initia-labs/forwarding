@@ -156,7 +156,8 @@ func NewSimApp(
 			SignModeHandler: app.txConfig.SignModeHandler(),
 			SigGasConsumer:  forwarding.SigVerificationGasConsumer,
 		},
-		BankKeeper: app.BankKeeper,
+		BankKeeper:       app.BankKeeper,
+		ForwardingKeeper: app.ForwardingKeeper,
 	})
 	if err != nil {
 		return nil, err

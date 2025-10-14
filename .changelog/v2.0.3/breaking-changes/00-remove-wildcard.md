@@ -1,0 +1,1 @@
+- Remove support for the `"*"` wildcard in the allowed denoms configuration.

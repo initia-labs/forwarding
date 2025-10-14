@@ -15,22 +15,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Build Docker Image
-        uses: strangelove-ventures/heighliner-build-action@v1.0.2
-        with:
-          registry: "" # empty registry, image only shared for e2e testing
-          tag: local # emulate local environment for consistency in interchaintest cases
-          tar-export-path: ${{ env.TAR_PATH }} # export a tarball that can be uploaded as an artifact for the e2e jobs
-          platform: linux/amd64 # test runner architecture only
-          git-ref: ${{ github.head_ref }} # source code ref
+      - name: Checkout Repository
+        uses: actions/checkout@v5
 
-          # Heighliner chains.yaml config
-          chain: noble-forwarding-simd
-          dockerfile: cosmos
-          build-target: make build
-          build-dir: simapp
-          binaries: |
-            - simapp/build/simd
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: noble-forwarding-simd:local
+          outputs: type=docker, dest=${{ env.TAR_PATH }}
 
       - name: Publish Tarball as Artifact
         uses: actions/upload-artifact@v4
@@ -44,10 +41,10 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
 
@@ -71,15 +68,15 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
 
       - name: Download Tarball Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ env.ARTIFACT_NAME }}
 

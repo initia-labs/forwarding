@@ -22,6 +22,7 @@ package keeper
 
 import (
 	"context"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/noble-assets/forwarding/v2/types"
@@ -36,6 +37,8 @@ func (k *Keeper) GetAllowedDenoms(ctx context.Context) []string {
 		denoms = append(denoms, denom)
 		return false, nil
 	})
+
+	sort.Strings(denoms)
 
 	return denoms
 }

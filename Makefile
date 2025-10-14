@@ -64,7 +64,7 @@ proto-lint:
 
 local-image:
 	@echo "🤖 Building image..."
-	@heighliner build --chain noble-forwarding-simd --file e2e/chains.yaml --local 1> /dev/null
+	@docker build -t noble-forwarding-simd:local .
 	@echo "✅ Completed build!"
 
 test: test-unit test-e2e

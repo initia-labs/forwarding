@@ -116,19 +116,10 @@ func NewKeeper(
 	return keeper
 }
 
-// IsAllowedDenom checks if a specific denom is allowed to be forwarded.
-func (k *Keeper) IsAllowedDenom(ctx context.Context, denom string) bool {
-	has, _ := k.AllowedDenoms.Has(ctx, "*")
-	if has {
-		return true
-	}
-
-	has, _ = k.AllowedDenoms.Has(ctx, denom)
-	return has
-}
-
 // ExecuteForwards is an end block hook that clears all pending forwards from transient state.
 func (k *Keeper) ExecuteForwards(ctx context.Context) {
+	denoms := k.GetAllowedDenoms(ctx)
+
 	forwards := k.GetPendingForwards(ctx)
 	if len(forwards) > 0 {
 		k.Logger().Info(fmt.Sprintf("executing %d automatic forward(s)", len(forwards)))
@@ -141,10 +132,9 @@ func (k *Keeper) ExecuteForwards(ctx context.Context) {
 			continue
 		}
 
-		balances := k.bankKeeper.GetAllBalances(ctx, forward.GetAddress())
-
-		for _, balance := range balances {
-			if !k.IsAllowedDenom(ctx, balance.Denom) {
+		for _, denom := range denoms {
+			balance := k.bankKeeper.GetBalance(ctx, forward.GetAddress(), denom)
+			if balance.IsZero() {
 				continue
 			}
 

@@ -1,0 +1,1 @@
+- Deprecate usage of `x/bank` `GetAllBalances` method in favor of `GetBalance` restricted to the allowed denoms.

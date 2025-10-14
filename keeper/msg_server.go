@@ -84,10 +84,14 @@ func (k *Keeper) RegisterAccount(ctx context.Context, msg *types.MsgRegisterAcco
 			return nil, fmt.Errorf("unsupported account type: %T", rawAccount)
 		}
 
-		if !k.bankKeeper.GetAllBalances(ctx, address).IsZero() {
-			account, ok := rawAccount.(*types.ForwardingAccount)
-			if ok {
-				k.SetPendingForward(ctx, account)
+		for _, denom := range k.GetAllowedDenoms(ctx) {
+			balance := k.bankKeeper.GetBalance(ctx, address, denom)
+			if !balance.IsZero() {
+				account, ok := rawAccount.(*types.ForwardingAccount)
+				if ok {
+					k.SetPendingForward(ctx, account)
+					break
+				}
 			}
 		}
 
@@ -134,8 +138,12 @@ func (k *Keeper) ClearAccount(ctx context.Context, msg *types.MsgClearAccount) (
 		return nil, errors.New("account is not a forwarding account")
 	}
 
-	balance := k.bankKeeper.GetAllBalances(ctx, address)
-	if balance.IsZero() {
+	totalBalance := sdk.NewCoins()
+	for _, denom := range k.GetAllowedDenoms(ctx) {
+		balance := k.bankKeeper.GetBalance(ctx, address, denom)
+		totalBalance = totalBalance.Add(balance)
+	}
+	if totalBalance.IsZero() {
 		return nil, errors.New("account does not require clearing")
 	}
 
@@ -148,7 +156,7 @@ func (k *Keeper) ClearAccount(ctx context.Context, msg *types.MsgClearAccount) (
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to decode fallback address")
 	}
-	err = k.bankKeeper.SendCoins(ctx, address, fallback, balance)
+	err = k.bankKeeper.SendCoins(ctx, address, fallback, totalBalance)
 	if err != nil {
 		return nil, errors.New("failed to clear balance to fallback account")
 	}

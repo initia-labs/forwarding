@@ -21,12 +21,15 @@
 package forwarding
 
 import (
+	"errors"
+
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	"github.com/noble-assets/forwarding/v2/keeper"
 	"github.com/noble-assets/forwarding/v2/types"
 )
 
@@ -49,18 +52,20 @@ var _ sdk.AnteDecorator = SigVerificationDecorator{}
 
 type SigVerificationDecorator struct {
 	bank       types.BankKeeper
+	forwarding *keeper.Keeper
 	underlying sdk.AnteDecorator
 }
 
 var _ sdk.AnteDecorator = SigVerificationDecorator{}
 
-func NewSigVerificationDecorator(bk types.BankKeeper, underlying sdk.AnteDecorator) SigVerificationDecorator {
+func NewSigVerificationDecorator(bk types.BankKeeper, fk *keeper.Keeper, underlying sdk.AnteDecorator) SigVerificationDecorator {
 	if underlying == nil {
 		panic("underlying ante decorator cannot be nil")
 	}
 
 	return SigVerificationDecorator{
 		bank:       bk,
+		forwarding: fk,
 		underlying: underlying,
 	}
 }
@@ -73,10 +78,22 @@ func (d SigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		}
 
 		address := types.GenerateAddress(msg.Channel, msg.Recipient, msg.Fallback)
-		balance := d.bank.GetAllBalances(ctx, address)
 
-		if balance.IsZero() || msg.Signer != address.String() {
+		if msg.Signer != address.String() {
 			return d.underlying.AnteHandle(ctx, tx, simulate, next)
+		}
+
+		hasAllowedDenomBalance := false
+		for _, denom := range d.forwarding.GetAllowedDenoms(ctx) {
+			balance := d.bank.GetBalance(ctx, address, denom)
+			if !balance.IsZero() {
+				hasAllowedDenomBalance = true
+				break
+			}
+		}
+
+		if !hasAllowedDenomBalance {
+			return ctx, errors.New("account must have an allowed denom balance")
 		}
 
 		return next(ctx, tx, simulate)

@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/noble-assets/forwarding/v2"
+	forwardingkeeper "github.com/noble-assets/forwarding/v2/keeper"
 	forwardingtypes "github.com/noble-assets/forwarding/v2/types"
 )
 
@@ -17,7 +18,8 @@ type BankKeeper interface {
 
 type HandlerOptions struct {
 	ante.HandlerOptions
-	BankKeeper BankKeeper
+	BankKeeper       BankKeeper
+	ForwardingKeeper *forwardingkeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -29,12 +31,17 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		return nil, errors.Wrap(errorstypes.ErrLogic, "bank keeper is required for ante builder")
 	}
 
+	if options.ForwardingKeeper == nil {
+		return nil, errors.Wrap(errorstypes.ErrLogic, "forwarding keeper is required for ante builder")
+	}
+
 	if options.SignModeHandler == nil {
 		return nil, errors.Wrap(errorstypes.ErrLogic, "sign mode handler is required for ante builder")
 	}
 
 	sigVerificationDecorator := forwarding.NewSigVerificationDecorator(
 		options.BankKeeper,
+		options.ForwardingKeeper,
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 	)
 
