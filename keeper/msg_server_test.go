@@ -164,18 +164,21 @@ func TestSetMemoRequiresOwner(t *testing.T) {
 	ensureOpenChannel(t, app, sdkCtx, "channel-0")
 
 	recipient := "iaa1recipient"
+	fallback := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	register := &types.MsgRegisterAccount{
 		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 		Recipient: recipient,
+		Fallback:  fallback,
 		Channel:   "channel-0",
 	}
 
-	res, err := app.ForwardingKeeper.RegisterAccount(sdkCtx, register)
+	_, err := app.ForwardingKeeper.RegisterAccount(sdkCtx, register)
 	require.NoError(t, err)
 
 	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
 		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 		Recipient: recipient,
+		Fallback:  fallback,
 		Channel:   "channel-0",
 		Denom:     "uusdc",
 		Memo:      "malicious",
@@ -184,8 +187,19 @@ func TestSetMemoRequiresOwner(t *testing.T) {
 	require.ErrorContains(t, err, "only the forwarding account address can modify memos")
 
 	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
-		Signer:    res.Address,
+		Signer:    recipient,
 		Recipient: recipient,
+		Fallback:  fallback,
+		Channel:   "channel-0",
+		Denom:     "uusdc",
+		Memo:      "owner-memo",
+	})
+	require.NoError(t, err)
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    fallback,
+		Recipient: recipient,
+		Fallback:  fallback,
 		Channel:   "channel-0",
 		Denom:     "uusdc",
 		Memo:      "owner-memo",
@@ -205,10 +219,12 @@ func TestSetMemoAllowsAdditionalEntries(t *testing.T) {
 		}
 	}
 
+	fallback := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	register := &types.MsgRegisterAccount{
 		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 		Recipient: "iaa1recipient",
 		Channel:   "channel-0",
+		Fallback:  fallback,
 		Memos:     memos,
 	}
 
@@ -216,27 +232,30 @@ func TestSetMemoAllowsAdditionalEntries(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
-		Signer:    res.Address,
+		Signer:    fallback,
 		Recipient: register.Recipient,
 		Channel:   register.Channel,
+		Fallback:  fallback,
 		Denom:     "extra",
 		Memo:      "new-memo",
 	})
 	require.NoError(t, err)
 
 	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
-		Signer:    res.Address,
+		Signer:    fallback,
 		Recipient: register.Recipient,
 		Channel:   register.Channel,
+		Fallback:  fallback,
 		Denom:     memos[0].Denom,
 		Memo:      "updated",
 	})
 	require.NoError(t, err)
 
 	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
-		Signer:    res.Address,
+		Signer:    fallback,
 		Recipient: register.Recipient,
 		Channel:   register.Channel,
+		Fallback:  fallback,
 		Denom:     memos[0].Denom,
 		Memo:      "",
 	})
@@ -250,9 +269,10 @@ func TestSetMemoAllowsAdditionalEntries(t *testing.T) {
 	require.Equal(t, "new-memo", resp.Memo)
 
 	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
-		Signer:    res.Address,
+		Signer:    fallback,
 		Recipient: register.Recipient,
 		Channel:   register.Channel,
+		Fallback:  fallback,
 		Denom:     "unused",
 		Memo:      "",
 	})

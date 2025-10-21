@@ -242,7 +242,7 @@ func (k *Keeper) SetMemo(ctx context.Context, msg *types.MsgSetMemo) (*types.Msg
 	}
 
 	addr := address.String()
-	if msg.Signer != addr && msg.Signer != k.authority {
+	if msg.Signer != msg.Recipient && msg.Signer != msg.Fallback && msg.Signer != k.authority {
 		return nil, errors.New("only the forwarding account address can modify memos")
 	}
 
