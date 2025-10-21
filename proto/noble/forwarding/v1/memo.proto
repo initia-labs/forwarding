@@ -18,19 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+syntax = "proto3";
 
-const (
-	ModuleName        = "forwarding"
-	StoreKey          = "forwarding"
-	TransientStoreKey = "transient_forwarding"
-)
+package noble.forwarding.v1;
 
-var (
-	AllowedDenomsPrefix   = []byte("allowed_denoms")
-	NumOfAccountsPrefix   = []byte("num_of_accounts")
-	NumOfForwardsPrefix   = []byte("num_of_forwards")
-	TotalForwardedPrefix  = []byte("total_forwarded")
-	PendingForwardsPrefix = []byte("pending_forwards")
-	MemosPrefix           = []byte("memos")
-)
+option go_package = "github.com/noble-assets/forwarding/v2/types";
+
+message MemoEntry {
+  string denom = 1;
+  string memo = 2;
+}

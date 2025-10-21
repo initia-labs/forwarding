@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -95,6 +96,10 @@ func (k *Keeper) RegisterAccount(ctx context.Context, msg *types.MsgRegisterAcco
 			}
 		}
 
+		if err := k.setInitialMemos(ctx, address, msg.Memos); err != nil {
+			return nil, err
+		}
+
 		return &types.MsgRegisterAccountResponse{Address: address.String()}, k.eventService.EventManager(ctx).Emit(ctx, &types.AccountRegistered{
 			Address:   address.String(),
 			Channel:   msg.Channel,
@@ -114,6 +119,10 @@ func (k *Keeper) RegisterAccount(ctx context.Context, msg *types.MsgRegisterAcco
 
 	k.accountKeeper.SetAccount(ctx, &account)
 	k.IncrementNumOfAccounts(ctx, msg.Channel)
+
+	if err := k.setInitialMemos(ctx, address, msg.Memos); err != nil {
+		return nil, err
+	}
 
 	return &types.MsgRegisterAccountResponse{Address: address.String()}, k.eventService.EventManager(ctx).Emit(ctx, &types.AccountRegistered{
 		Address:   address.String(),
@@ -213,6 +222,90 @@ func ValidateAccountFields(account sdk.AccountI, address sdk.AccAddress) error {
 
 	if !isNewAccount && !isValidPubKey {
 		return fmt.Errorf("attempting to register an existing user account with address: %s", address.String())
+	}
+	return nil
+}
+
+// MaxMemoLength is the maximum length for a memo string.
+const MaxMemoLength = 1024
+const MaxMemoEntries = 10
+
+func (k *Keeper) SetMemo(ctx context.Context, msg *types.MsgSetMemo) (*types.MsgSetMemoResponse, error) {
+	address := types.GenerateAddress(msg.Channel, msg.Recipient, msg.Fallback)
+	rawAccount := k.accountKeeper.GetAccount(ctx, address)
+	if rawAccount == nil {
+		return nil, errors.New("account does not exist")
+	}
+	_, ok := rawAccount.(*types.ForwardingAccount)
+	if !ok {
+		return nil, errors.New("account is not a forwarding account")
+	}
+
+	addr := address.String()
+	if msg.Signer != addr && msg.Signer != k.authority {
+		return nil, errors.New("only the forwarding account address can modify memos")
+	}
+
+	pair := collections.Join(addr, msg.Denom)
+	if l := len(msg.Memo); l == 0 {
+		err := k.Memos.Remove(ctx, pair)
+		if err != nil && !errors.Is(err, collections.ErrNotFound) {
+			return nil, fmt.Errorf("failed to delete memo from state: %w", err)
+		}
+	} else if l > MaxMemoLength {
+		return nil, fmt.Errorf("memo exceeds maximum length of %d characters", MaxMemoLength)
+	} else if err := k.Memos.Set(ctx, pair, msg.Memo); err != nil {
+		return nil, fmt.Errorf("failed to set memo in state: %w", err)
+	}
+
+	return &types.MsgSetMemoResponse{}, k.eventService.EventManager(ctx).Emit(ctx, &types.MemoSet{
+		Address: addr,
+		Denom:   msg.Denom,
+		Memo:    msg.Memo,
+	})
+}
+
+func (k *Keeper) setInitialMemos(ctx context.Context, address sdk.AccAddress, entries []types.MemoEntry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+
+	if err := validateMemoEntries(entries); err != nil {
+		return err
+	}
+
+	addr := address.String()
+	for _, entry := range entries {
+		if err := k.Memos.Set(ctx, collections.Join(addr, entry.Denom), entry.Memo); err != nil {
+			return fmt.Errorf("failed to set memo in state: %w", err)
+		}
+	}
+	return nil
+}
+
+func validateMemoEntries(entries []types.MemoEntry) error {
+	if len(entries) > MaxMemoEntries {
+		return fmt.Errorf("cannot register more than %d memos", MaxMemoEntries)
+	}
+
+	seen := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		if entry.Denom == "" {
+			return errors.New("memo denom cannot be empty")
+		}
+		if _, ok := seen[entry.Denom]; ok {
+			return fmt.Errorf("duplicate memo denom: %s", entry.Denom)
+		}
+		if len(entry.Memo) == 0 {
+			return fmt.Errorf("memo for denom %s cannot be empty", entry.Denom)
+		}
+		if len(entry.Memo) > MaxMemoLength {
+			return fmt.Errorf("memo for denom %s exceeds maximum length of %d characters", entry.Denom, MaxMemoLength)
+		}
+		if err := sdk.ValidateDenom(entry.Denom); err != nil {
+			return fmt.Errorf("invalid denom %s: %w", entry.Denom, err)
+		}
+		seen[entry.Denom] = struct{}{}
 	}
 	return nil
 }

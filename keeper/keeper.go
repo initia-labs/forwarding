@@ -22,6 +22,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/collections"
@@ -53,6 +54,7 @@ type Keeper struct {
 	NumOfAccounts  collections.Map[string, uint64]
 	NumOfForwards  collections.Map[string, uint64]
 	TotalForwarded collections.Map[string, string]
+	Memos          collections.Map[collections.Pair[string, string], string]
 
 	TransientSchema collections.Schema
 	PendingForwards collections.Map[string, types.ForwardingAccount]
@@ -93,6 +95,7 @@ func NewKeeper(
 		NumOfAccounts:  collections.NewMap(builder, types.NumOfAccountsPrefix, "num_of_accounts", collections.StringKey, collections.Uint64Value),
 		NumOfForwards:  collections.NewMap(builder, types.NumOfForwardsPrefix, "num_of_forwards", collections.StringKey, collections.Uint64Value),
 		TotalForwarded: collections.NewMap(builder, types.TotalForwardedPrefix, "total_forwarded", collections.StringKey, collections.StringValue),
+		Memos:          collections.NewMap(builder, types.MemosPrefix, "memos", collections.PairKeyCodec(collections.StringKey, collections.StringKey), collections.StringValue),
 
 		PendingForwards: collections.NewMap(transientBuilder, types.PendingForwardsPrefix, "pending_forwards", collections.StringKey, codec.CollValue[types.ForwardingAccount](cdc)),
 
@@ -138,6 +141,13 @@ func (k *Keeper) ExecuteForwards(ctx context.Context) {
 				continue
 			}
 
+			// fetch memo if it exists and use it for the transfer
+			memo, err := k.Memos.Get(ctx, collections.Join(forward.GetAddress().String(), denom))
+			if err != nil && !errors.Is(err, collections.ErrNotFound) {
+				k.Logger().Error("failed to get memo for automatic forward", "channel", forward.Channel, "address", forward.GetAddress().String(), "denom", denom, "err", err)
+				continue
+			}
+
 			timeout := uint64(k.headerService.GetHeaderInfo(ctx).Time.UnixNano()) + transfertypes.DefaultRelativePacketTimeoutTimestamp
 			msg := &transfertypes.MsgTransfer{
 				SourcePort:       transfertypes.PortID,
@@ -147,13 +157,13 @@ func (k *Keeper) ExecuteForwards(ctx context.Context) {
 				Receiver:         forward.Recipient,
 				TimeoutHeight:    clienttypes.ZeroHeight(),
 				TimeoutTimestamp: timeout,
-				Memo:             "",
+				Memo:             memo,
 			}
 			if err := msg.ValidateBasic(); err != nil {
 				k.Logger().Error("ibc message validation failed", "channel", forward.Channel, "address", forward.GetAddress().String(), "amount", balance.String(), "err", err)
 				continue
 			}
-			_, err := k.transferKeeper.Transfer(ctx, msg)
+			_, err = k.transferKeeper.Transfer(ctx, msg)
 			if err != nil {
 				// TODO: Consider moving to persistent store in order to retry in future blocks?
 				k.Logger().Error("unable to execute automatic forward", "channel", forward.Channel, "address", forward.GetAddress().String(), "amount", balance.String(), "err", err)
