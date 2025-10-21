@@ -26,6 +26,7 @@ import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "noble/forwarding/v1/memo.proto";
 
 option go_package = "github.com/noble-assets/forwarding/v2/types";
 
@@ -36,6 +37,8 @@ service Msg {
   rpc ClearAccount(noble.forwarding.v1.MsgClearAccount) returns (noble.forwarding.v1.MsgClearAccountResponse);
 
   rpc SetAllowedDenoms(noble.forwarding.v1.MsgSetAllowedDenoms) returns (noble.forwarding.v1.MsgSetAllowedDenomsResponse);
+
+  rpc SetMemo(noble.forwarding.v1.MsgSetMemo) returns (noble.forwarding.v1.MsgSetMemoResponse);
 }
 
 //
@@ -51,6 +54,7 @@ message MsgRegisterAccount {
   string recipient = 2;
   string channel = 3;
   string fallback = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated noble.forwarding.v1.MemoEntry memos = 5 [(gogoproto.nullable) = false];
 }
 
 message MsgRegisterAccountResponse {
@@ -83,3 +87,21 @@ message MsgSetAllowedDenoms {
 }
 
 message MsgSetAllowedDenomsResponse {}
+
+// register memo which will be attached to all forwarded txs for a given address+denom pair
+message MsgSetMemo {
+  option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name) = "noble/forwarding/SetMemo";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string recipient = 2;
+  string channel = 3;
+  string fallback = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string denom = 5;
+  string memo = 6;
+}
+
+message MsgSetMemoResponse {}

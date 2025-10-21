@@ -24,9 +24,11 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errorstypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/noble-assets/forwarding/v2/types"
 )
@@ -110,4 +112,40 @@ func (k *Keeper) StatsByChannel(ctx context.Context, req *types.QueryStatsByChan
 		NumOfForwards:  numOfForwards,
 		TotalForwarded: k.GetTotalForwarded(ctx, req.Channel),
 	}, nil
+}
+
+func (k *Keeper) GetMemo(ctx context.Context, req *types.QueryMemo) (*types.QueryMemoResponse, error) {
+	if req == nil {
+		return nil, errorstypes.ErrInvalidRequest
+	}
+
+	memo, err := k.Memos.Get(ctx, collections.Join(req.Address, req.Denom))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get memo from state")
+	}
+
+	return &types.QueryMemoResponse{Memo: memo}, nil
+}
+
+func (k *Keeper) GetMemos(ctx context.Context, req *types.QueryMemos) (*types.QueryMemosResponse, error) {
+	if req == nil {
+		return nil, errorstypes.ErrInvalidRequest
+	}
+
+	_, err := k.accountKeeper.AddressCodec().StringToBytes(req.Address)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid account address")
+	}
+
+	memos, pageRes, err := query.CollectionPaginate(ctx, k.Memos, req.Pagination, func(key collections.Pair[string, string], value string) (entry types.MemoEntry, err error) {
+		return types.MemoEntry{
+			Denom: key.K2(),
+			Memo:  value,
+		}, nil
+	}, query.WithCollectionPaginationPairPrefix[string, string](req.Address))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to iterate memos for address")
+	}
+
+	return &types.QueryMemosResponse{Memos: memos, Pagination: pageRes}, nil
 }
