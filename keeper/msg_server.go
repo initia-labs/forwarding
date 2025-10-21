@@ -231,6 +231,9 @@ const MaxMemoLength = 1024
 const MaxMemoEntries = 10
 
 func (k *Keeper) SetMemo(ctx context.Context, msg *types.MsgSetMemo) (*types.MsgSetMemoResponse, error) {
+	if err := sdk.ValidateDenom(msg.Denom); err != nil {
+		return nil, fmt.Errorf("invalid denom: %w", err)
+	}
 	address := types.GenerateAddress(msg.Channel, msg.Recipient, msg.Fallback)
 	rawAccount := k.accountKeeper.GetAccount(ctx, address)
 	if rawAccount == nil {
