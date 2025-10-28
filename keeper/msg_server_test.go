@@ -184,7 +184,7 @@ func TestSetMemoRequiresOwner(t *testing.T) {
 		Memo:      "malicious",
 	})
 	require.Error(t, err)
-	require.ErrorContains(t, err, "only the forwarding account address can modify memos")
+	require.ErrorContains(t, err, "only the forwarding account's receiver or fallback account can modify memos")
 
 	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
 		Signer:    recipient,
