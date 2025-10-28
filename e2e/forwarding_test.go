@@ -31,7 +31,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/jsonpb"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	forwardingtypes "github.com/noble-assets/forwarding/v2/types"
+	forwardingtypes "github.com/initia-labs/forwarding/v2/types"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"

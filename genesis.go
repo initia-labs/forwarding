@@ -24,8 +24,8 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/noble-assets/forwarding/v2/keeper"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/keeper"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 func InitGenesis(ctx context.Context, k *keeper.Keeper, genesis types.GenesisState) {

@@ -31,7 +31,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "noble/forwarding/v1/memo.proto";
 
-option go_package = "github.com/noble-assets/forwarding/v2/types";
+option go_package = "github.com/initia-labs/forwarding/v2/types";
 
 service Query {
   rpc Denoms(QueryDenoms) returns (QueryDenomsResponse) {

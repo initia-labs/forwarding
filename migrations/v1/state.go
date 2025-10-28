@@ -25,11 +25,11 @@ import (
 
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 // GetAllNumOfAccounts implements adapted legacy store logic from version 1.
-// https://github.com/noble-assets/forwarding/blob/v1.x/x/forwarding/keeper/state.go#L25-L39
+// https://github.com/initia-labs/forwarding/blob/v1.x/x/forwarding/keeper/state.go#L25-L39
 func GetAllNumOfAccounts(adapter storetypes.KVStore) map[string]uint64 {
 	counts := make(map[string]uint64)
 
@@ -47,7 +47,7 @@ func GetAllNumOfAccounts(adapter storetypes.KVStore) map[string]uint64 {
 }
 
 // GetAllNumOfForwards implements adapted legacy store logic from version 1.
-// https://github.com/noble-assets/forwarding/blob/v1.x/x/forwarding/keeper/state.go#L71-L85
+// https://github.com/initia-labs/forwarding/blob/v1.x/x/forwarding/keeper/state.go#L71-L85
 func GetAllNumOfForwards(adapter storetypes.KVStore) map[string]uint64 {
 	counts := make(map[string]uint64)
 

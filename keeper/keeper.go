@@ -36,7 +36,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 type Keeper struct {

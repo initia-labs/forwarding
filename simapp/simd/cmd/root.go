@@ -29,7 +29,7 @@ import (
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	tendermint "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/noble-assets/forwarding/simapp"
+	"github.com/initia-labs/forwarding/simapp"
 	"github.com/spf13/cobra"
 )
 

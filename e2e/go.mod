@@ -1,4 +1,4 @@
-module github.com/noble-assets/forwarding/e2e
+module github.com/initia-labs/forwarding/e2e
 
 go 1.22.7
 
@@ -7,7 +7,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.50.10
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/v8 v8.5.1
-	github.com/noble-assets/forwarding/v2 v2.0.0
+	github.com/initia-labs/forwarding/v2 v2.0.0
 	github.com/strangelove-ventures/interchaintest/v8 v8.2.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
@@ -271,5 +271,6 @@ replace (
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/noble-assets/forwarding/v2 => ./..
 )
+
+replace github.com/initia-labs/forwarding/v2 => ../
