@@ -29,7 +29,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/noble-assets/forwarding/v2/simapp"
+	"github.com/noble-assets/forwarding/simapp"
 	"github.com/noble-assets/forwarding/v2/types"
 )
 
