@@ -21,6 +21,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -102,4 +103,178 @@ func TestValidateAccountFields(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRegisterAccountStoresInitialMemos(t *testing.T) {
+	app, sdkCtx := setupForwardingKeeper(t)
+	ensureOpenChannel(t, app, sdkCtx, "channel-0")
+
+	memos := []types.MemoEntry{
+		{Denom: "uusdc", Memo: "cross-chain-usdc"},
+		{Denom: "uatom", Memo: "forward-atom"},
+	}
+
+	msg := &types.MsgRegisterAccount{
+		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+		Recipient: "iaa1recipient",
+		Channel:   "channel-0",
+		Memos:     memos,
+	}
+
+	res, err := app.ForwardingKeeper.RegisterAccount(sdkCtx, msg)
+	require.NoError(t, err)
+	require.NotEmpty(t, res.Address)
+
+	for _, entry := range memos {
+		resp, err := app.ForwardingKeeper.GetMemo(sdkCtx, &types.QueryMemo{
+			Address: res.Address,
+			Denom:   entry.Denom,
+		})
+		require.NoError(t, err)
+		require.Equal(t, entry.Memo, resp.Memo)
+	}
+}
+
+func TestRegisterAccountRejectsTooManyMemos(t *testing.T) {
+	app, sdkCtx := setupForwardingKeeper(t)
+	ensureOpenChannel(t, app, sdkCtx, "channel-0")
+
+	memos := make([]types.MemoEntry, keeper.MaxMemoEntries+1)
+	for i := range memos {
+		memos[i] = types.MemoEntry{
+			Denom: fmt.Sprintf("denom-%d", i),
+			Memo:  fmt.Sprintf("memo-%d", i),
+		}
+	}
+
+	msg := &types.MsgRegisterAccount{
+		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+		Recipient: "iaa1recipient",
+		Channel:   "channel-0",
+		Memos:     memos,
+	}
+
+	_, err := app.ForwardingKeeper.RegisterAccount(sdkCtx, msg)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "cannot register more than")
+}
+
+func TestSetMemoRequiresOwner(t *testing.T) {
+	app, sdkCtx := setupForwardingKeeper(t)
+	ensureOpenChannel(t, app, sdkCtx, "channel-0")
+
+	recipient := "iaa1recipient"
+	fallback := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	register := &types.MsgRegisterAccount{
+		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+		Recipient: recipient,
+		Fallback:  fallback,
+		Channel:   "channel-0",
+	}
+
+	_, err := app.ForwardingKeeper.RegisterAccount(sdkCtx, register)
+	require.NoError(t, err)
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+		Recipient: recipient,
+		Fallback:  fallback,
+		Channel:   "channel-0",
+		Denom:     "uusdc",
+		Memo:      "malicious",
+	})
+	require.Error(t, err)
+	require.ErrorContains(t, err, "only the forwarding account's receiver or fallback account can modify memos")
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    recipient,
+		Recipient: recipient,
+		Fallback:  fallback,
+		Channel:   "channel-0",
+		Denom:     "uusdc",
+		Memo:      "owner-memo",
+	})
+	require.NoError(t, err)
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    fallback,
+		Recipient: recipient,
+		Fallback:  fallback,
+		Channel:   "channel-0",
+		Denom:     "uusdc",
+		Memo:      "owner-memo",
+	})
+	require.NoError(t, err)
+}
+
+func TestSetMemoAllowsAdditionalEntries(t *testing.T) {
+	app, sdkCtx := setupForwardingKeeper(t)
+	ensureOpenChannel(t, app, sdkCtx, "channel-0")
+
+	memos := make([]types.MemoEntry, keeper.MaxMemoEntries)
+	for i := range memos {
+		memos[i] = types.MemoEntry{
+			Denom: fmt.Sprintf("denom-%d", i),
+			Memo:  fmt.Sprintf("memo-%d", i),
+		}
+	}
+
+	fallback := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	register := &types.MsgRegisterAccount{
+		Signer:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+		Recipient: "iaa1recipient",
+		Channel:   "channel-0",
+		Fallback:  fallback,
+		Memos:     memos,
+	}
+
+	res, err := app.ForwardingKeeper.RegisterAccount(sdkCtx, register)
+	require.NoError(t, err)
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    fallback,
+		Recipient: register.Recipient,
+		Channel:   register.Channel,
+		Fallback:  fallback,
+		Denom:     "extra",
+		Memo:      "new-memo",
+	})
+	require.NoError(t, err)
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    fallback,
+		Recipient: register.Recipient,
+		Channel:   register.Channel,
+		Fallback:  fallback,
+		Denom:     memos[0].Denom,
+		Memo:      "updated",
+	})
+	require.NoError(t, err)
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    fallback,
+		Recipient: register.Recipient,
+		Channel:   register.Channel,
+		Fallback:  fallback,
+		Denom:     memos[0].Denom,
+		Memo:      "",
+	})
+	require.NoError(t, err)
+
+	resp, err := app.ForwardingKeeper.GetMemo(sdkCtx, &types.QueryMemo{
+		Address: res.Address,
+		Denom:   "extra",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "new-memo", resp.Memo)
+
+	_, err = app.ForwardingKeeper.SetMemo(sdkCtx, &types.MsgSetMemo{
+		Signer:    fallback,
+		Recipient: register.Recipient,
+		Channel:   register.Channel,
+		Fallback:  fallback,
+		Denom:     "unused",
+		Memo:      "",
+	})
+	require.NoError(t, err)
 }
