@@ -1,4 +1,4 @@
-module github.com/noble-assets/forwarding/v2/simapp
+module github.com/noble-assets/forwarding/simapp
 
 go 1.22.7
 
