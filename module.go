@@ -41,11 +41,11 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	modulev1 "github.com/noble-assets/forwarding/v2/api/module/v1"
-	forwardingv1 "github.com/noble-assets/forwarding/v2/api/v1"
-	"github.com/noble-assets/forwarding/v2/client/cli"
-	"github.com/noble-assets/forwarding/v2/keeper"
-	"github.com/noble-assets/forwarding/v2/types"
+	modulev1 "github.com/initia-labs/forwarding/v2/api/module/v1"
+	forwardingv1 "github.com/initia-labs/forwarding/v2/api/v1"
+	"github.com/initia-labs/forwarding/v2/client/cli"
+	"github.com/initia-labs/forwarding/v2/keeper"
+	"github.com/initia-labs/forwarding/v2/types"
 	"github.com/spf13/cobra"
 )
 

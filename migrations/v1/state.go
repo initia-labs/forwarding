@@ -25,7 +25,7 @@ import (
 
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 // GetAllNumOfAccounts implements adapted legacy store logic from version 1.

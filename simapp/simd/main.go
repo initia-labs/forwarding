@@ -6,8 +6,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/noble-assets/forwarding/v2/simapp"
-	"github.com/noble-assets/forwarding/v2/simapp/simd/cmd"
+	"github.com/initia-labs/forwarding/v2/simapp"
+	"github.com/initia-labs/forwarding/v2/simapp/simd/cmd"
 )
 
 var (

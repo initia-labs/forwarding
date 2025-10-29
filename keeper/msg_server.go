@@ -31,7 +31,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 var _ types.MsgServer = &Keeper{}

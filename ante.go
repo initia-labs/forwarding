@@ -29,8 +29,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/noble-assets/forwarding/v2/keeper"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/keeper"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 // SigVerificationGasConsumer is a wrapper around the default provided by the

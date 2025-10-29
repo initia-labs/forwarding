@@ -33,7 +33,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/noble-assets/forwarding/v2/simapp"
+	"github.com/initia-labs/forwarding/v2/simapp"
 )
 
 const (

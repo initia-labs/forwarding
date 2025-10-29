@@ -1,3 +1,5 @@
 .forwarding
 .idea
 build
+.gocache
+.gomodcache

@@ -29,8 +29,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/noble-assets/forwarding/v2/keeper"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/keeper"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 func TestValidateAccountFields(t *testing.T) {

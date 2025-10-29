@@ -29,8 +29,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/noble-assets/forwarding/v2/simapp"
-	"github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2/simapp"
+	"github.com/initia-labs/forwarding/v2/types"
 )
 
 func TestQueryGetMemoNotFound(t *testing.T) {

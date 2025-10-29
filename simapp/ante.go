@@ -6,9 +6,9 @@ import (
 	errorstypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/noble-assets/forwarding/v2"
-	forwardingkeeper "github.com/noble-assets/forwarding/v2/keeper"
-	forwardingtypes "github.com/noble-assets/forwarding/v2/types"
+	"github.com/initia-labs/forwarding/v2"
+	forwardingkeeper "github.com/initia-labs/forwarding/v2/keeper"
+	forwardingtypes "github.com/initia-labs/forwarding/v2/types"
 )
 
 type BankKeeper interface {
