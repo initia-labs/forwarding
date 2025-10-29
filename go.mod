@@ -20,7 +20,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/noble-assets/forwarding/v2/simapp v1.0.0
+	github.com/noble-assets/forwarding/simapp v1.0.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240827150818-7e3bb234dfed
@@ -334,4 +334,4 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/noble-assets/forwarding/v2/simapp => ./simapp
+replace github.com/noble-assets/forwarding/simapp => ./simapp
