@@ -9,6 +9,9 @@ WORKDIR /src
 
 COPY go.mod go.sum ./
 
+RUN mkdir -p simapp
+COPY simapp/go.mod simapp/go.sum ./simapp/
+
 RUN go mod download
 
 COPY . .
