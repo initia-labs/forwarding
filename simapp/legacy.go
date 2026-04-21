@@ -60,6 +60,7 @@ func (app *SimApp) RegisterLegacyModules() error {
 	app.ForwardingKeeper.SetIBCKeepers(app.IBCKeeper.ChannelKeeper, app.TransferKeeper)
 
 	tmLightClientModule := tendermint.NewLightClientModule(app.appCodec, app.IBCKeeper.ClientKeeper.GetStoreProvider())
+	app.IBCKeeper.ClientKeeper.AddRoute(tendermint.ModuleName, &tmLightClientModule)
 
 	return app.RegisterModules(
 		ibc.NewAppModule(app.IBCKeeper),

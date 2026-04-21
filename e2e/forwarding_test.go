@@ -488,7 +488,8 @@ func ForwardingSuite(t *testing.T, denoms []string) (ctx context.Context, noble 
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
 			ChainConfig: ibc.ChainConfig{
-				ChainID: "cosmoshub-4",
+				ChainID:    "cosmoshub-4",
+				GasPrices:  "0.025uatom",
 			},
 		},
 	})
