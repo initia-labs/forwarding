@@ -6,6 +6,7 @@ on:
 env:
   TAR_PATH: docker-image.tar
   ARTIFACT_NAME: tar-docker-image
+  GOFLAGS: -ldflags=-checklinkname=0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
