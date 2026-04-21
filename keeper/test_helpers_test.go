@@ -29,8 +29,8 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/noble-assets/forwarding/simapp"
@@ -81,7 +81,7 @@ func ensureOpenChannel(t *testing.T, app *simapp.SimApp, sdkCtx sdk.Context, cha
 		channeltypes.UNORDERED,
 		channeltypes.NewCounterparty(transfertypes.PortID, "counter-0"),
 		[]string{"connection-0"},
-		transfertypes.Version,
+		transfertypes.V1,
 	)
 	app.IBCKeeper.ChannelKeeper.SetChannel(sdkCtx, transfertypes.PortID, channelID, channel)
 }

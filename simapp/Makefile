@@ -13,6 +13,7 @@ ifeq (,$(VERSION))
 endif
 
 ldflags := $(LDFLAGS)
+ldflags += -checklinkname=0
 ldflags += -X github.com/cosmos/cosmos-sdk/version.Name=simapp \
 	-X github.com/cosmos/cosmos-sdk/version.AppName=simd \
 	-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
