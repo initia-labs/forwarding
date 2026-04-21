@@ -484,7 +484,7 @@ func ForwardingSuite(t *testing.T, denoms []string) (ctx context.Context, noble 
 		},
 		{
 			Name:          "gaia",
-			Version:       "v14.2.0", // TODO(@john): Doesn't work on the v15 release line.
+			Version:       "v25.3.2",
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
 			ChainConfig: ibc.ChainConfig{
