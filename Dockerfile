@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS forwarding-builder
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS forwarding-builder
 
 RUN apk add --no-cache \
     build-base \
